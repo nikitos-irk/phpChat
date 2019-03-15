@@ -1,0 +1,70 @@
+Write a very simple ‘chat’ application backend in PHP.
+
+A user should be able to send a simple text
+message to another user and a user should be able to get the messages sent to him and the
+author users of those messages.
+
+The users and messages should be stored in a simple SQLite
+database. All communication between the client and server should happen over a simple JSON
+based protocol over HTTP (which may be periodically refreshed to poll for new messages).
+
+A GUI,
+user registration and user login are not needed but the users should be identified by some token
+or ID in the HTTP messages and the database. You have the freedom to use any framework and
+libraries; keep in mind that we love custom-build.
+
+
+
+---------------------------
+get messages for user:
+GET -> url/<id>
+RESPONSE:
+{
+	"messages": [{"from": <name>, "msg": <msg>}, ...]
+}
+
+sent message to user by name:
+POST -> url
+SENT:
+{"id": <id>, "to": <name>, "msg": <msg>}
+
+login:
+POST -> url
+SENT:
+{"name": <name>}
+RESPONSE:
+{"id": <id>}
+
+--------------------------
+
+DROP TABLE users; DROP TABLE messages; DROP TABLE message_recipients;
+
+CREATE TABLE IF NOT EXISTS users (
+	user_id integer PRIMARY KEY,
+	user_name VARCHAR(256)
+);
+
+DROP TABLE IF EXISTS messages;
+CREATE TABLE messages (
+	message_id INTEGER PRIMARY KEY,
+  	time_stamp DATETIME, 
+  	message VARCHAR(4000),
+  	read_status BOOLEAN,
+  	sender_id integer NOT NULL,
+		FOREIGN KEY (sender_id) REFERENCES users(user_id)
+);
+
+DROP TABLE IF EXISTS message_recipients;
+ 
+CREATE TABLE message_recipients (
+	message_id integer NOT NULL,
+	recipient_id integer NOT NULL,
+		FOREIGN KEY (message_id) REFERENCES messages(message_id),
+		FOREIGN KEY (recipient_id) REFERENCES users(user_id)
+);
+
+
+insert into users (user_name) values ("nk");
+insert into users (user_name) values ("rk");
+insert into messages (time_stamp, message, sender_id) values (datetime('now'), "hello", 1);
+insert into messages (time_stamp, message, sender_id) values (datetime('now'), "hello", 2);
