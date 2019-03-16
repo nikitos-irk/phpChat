@@ -20,20 +20,17 @@ SingleClient.prototype.getMessagesByUserId = function(userId, callback){
 }
 
 SingleClient.prototype.UserLogin = function(userName){
-    
-    this.xhr.open("POST", this.url + "/user", true);
-    this.xhr.setRequestHeader("Content-Type", "application/json");
-    this.xhr.send(JSON.stringify({"userName": userName}));
-    
-    this.xhr.onreadystatechange = function () {
-        if (this.xhr.readyState === 4 && this.xhr.status === 200) {
-            var jsonObj = JSON.parse(this.xhr.responseText);
-            this.userId = jsonObj["user_id"];
-            alert(
-                this.xhr.responseText
-                );
-        }
-    }.bind(this);
+    var data = {};
+    data.userName = userName;
+    $.ajax({
+        type: 'POST',
+        url: this.url + "/user",
+        data: data,
+        dataType: 'json',
+        success: function(data) {
+            this.userId = data["user_id"];
+       }
+    });
 }
 
 SingleClient.prototype.pushMessageByUserName = function(userName, msg){
@@ -42,20 +39,25 @@ SingleClient.prototype.pushMessageByUserName = function(userName, msg){
     data.msg = msg;
     $.ajax({
         type: 'POST',
-        url: this.url + "/user/1",
+        url: this.url + "/user/" + this.userId,
         data: data,
         dataType: 'json'
     });
 }
 
-// singleClient = new SingleClient();
-// function getOnline() {    
-//     messages = singleClient.getMessagesByUserId(1);
-// }
+singleClient = new SingleClient();
+
+$('#makeLogin').click(function() {
+    singleClient.UserLogin($("#uName").val());
+    window.location.href = 'gui/chat.html';
+    // singleClient = new SingleClient();
+    singleClient.userId = 1;
+    // alert(singleClient.userId);
+});
 
 $( "#sendMessage" ).click(function(){
     
-    singleClient = new SingleClient();
+    // singleClient = new SingleClient();
     fullMsg = $("#msg").val();
 
     if (fullMsg.charAt(0) != '@'){
@@ -70,7 +72,7 @@ $( "#sendMessage" ).click(function(){
 
 function process(){
     $( "#allMessages" ).ready(function() {
-        singleClient = new SingleClient();
+        // singleClient = new SingleClient();
         messages = singleClient.getMessagesByUserId(2,
             function (someVal) {
                 var resp  = JSON.parse(someVal);
