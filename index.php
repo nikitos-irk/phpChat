@@ -1,6 +1,5 @@
 <?php
-// router.php
-// php -S localhost:8000 router.php
+// php -S localhost:8000
 
 class UserNameException extends Exception { }
 class PushMessageException extends Exception { }
@@ -24,13 +23,29 @@ class DBWrapper{
 
     function getMessagesByUserId($userId){
     	$result = $this->myPDO->query(
-    		"SELECT messages.message_id, messages.message FROM messages LEFT JOIN message_recipients ON message_recipients.message_id = messages.message_id WHERE message_recipients.recipient_id='{$userId}' AND messages.read_status=0"
+            "SELECT messages.message_id, messages.message, users.user_name FROM messages
+             LEFT JOIN message_recipients ON message_recipients.message_id = messages.message_id
+             LEFT JOIN users ON users.user_id = messages.sender_id
+             WHERE message_recipients.recipient_id='{$userId}' AND messages.read_status=0"
     	);
-    	$data = $result->fetchAll();
+    	
+        $data = $result->fetchAll();
     	foreach($data as $value){
     		$this->myPDO->query("UPDATE messages set read_status = 1 WHERE message_id = '{$value["message_id"]}'"); // to not get these messages next time
     	}
-    	return $data;
+
+        // to delete extra data from request response
+        $resultMsgs = array();
+        foreach ($data as $msgRecord) {
+            array_push($resultMsgs,
+                array(
+                    "message_id" => $msgRecord["message_id"],
+                    "message" => $msgRecord["message"],
+                    "user_name" => $msgRecord["user_name"]
+                )
+            );
+        }
+    	return $resultMsgs;
     }
 
     function pushMessage($userId, $userName, $msg){
@@ -86,28 +101,29 @@ if (preg_match('/\.(?:png|jpg|jpeg|gif)$/', $_SERVER["REQUEST_URI"])) {
         echo json_encode(array("a" => 11));
     }
     if ('GET' == $_SERVER['REQUEST_METHOD']){
-        echo json_encode(array("a" => 10));
+        // header($_SERVER['SERVER_PROTOCOL'] . ' 407 Internal Server Error', true, 200);
+        // echo json_encode(array("a" => 10));
         // echo $_SERVER['PATH_INFO'];
         // $params = explode('/', $_SERVER['PATH_INFO']);
         // foreach($params as $key => $value) {
         // 	echo $key . " = " . $value . "\n";
         // }
-		// echo $foo->getMessagesByUserId(1);
+		echo json_encode($foo->getMessagesByUserId(1));
     }
 }
 
 // function some(){
 // 	$foo = new DBWrapper;
-// 	try { 
-// 		$foo->pushMessage(1, "rk", "hello again(new)!!!");
-// 	} catch (UserNameException $e){
-// 		$data = array('error' => , );
-// 		echo json_encode(
+// 	// try { 
+// 	// 	$foo->pushMessage(1, "rk", "hello again(new)!!!");
+// 	// } catch (UserNameException $e){
+// 	// 	$data = array('error' => , );
+// 	// 	echo json_encode(
 
-// 		)
-// 	}
+// 	// 	)
+// 	// }
 //     echo json_encode($foo->getMessagesByUserId(1)); // to get string
-// 	echo json_encode( $foo->onLogin("rnk") );
+// 	//echo json_encode( $foo->onLogin("rnk") );
 // }
 // some();
 

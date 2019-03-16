@@ -67,3 +67,12 @@ insert into messages (time_stamp, message, read_status, sender_id) values (datet
 insert into messages (time_stamp, message, read_status, sender_id) values (datetime('now'), "hello from rk", 0, 2);
 insert into message_recipients (message_id, recipient_id) values (1, 2);
 insert into message_recipients (message_id, recipient_id) values (2, 1);
+
+
+
+SELECT messages.message_id, messages.message, users.user_name FROM messages
+LEFT JOIN message_recipients ON message_recipients.message_id = messages.message_id
+LEFT JOIN users ON users.user_id = messages.sender_id
+WHERE message_recipients.recipient_id=2 AND messages.read_status=0;
+
+UPDATE messages set read_status=0 WHERE message_id=2;
