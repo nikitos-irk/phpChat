@@ -8,37 +8,33 @@ The users and messages should be stored in a simple SQLite
 database. All communication between the client and server should happen over a simple JSON
 based protocol over HTTP (which may be periodically refreshed to poll for new messages).
 
-A GUI,
-user registration and user login are not needed but the users should be identified by some token
+A GUI, user registration and user login are not needed but the users should be identified by some token
 or ID in the HTTP messages and the database. You have the freedom to use any framework and
 libraries; keep in mind that we love custom-build.
 
-
-
 ---------------------------
-get messages for user:
-GET -> url/<id>
-RESPONSE:
-{
-	"messages": [{"from": <name>, "msg": <msg>}, ...]
-}
+get messages:
+	GET url/<id>
+	RESPONSES:
+		{
+			"messages": [{"message_id": <message_id>, "msg": <msg>, "user_name": <sender name>}, ...],
+			"error_message": <error_message>
+		}
 
-sent message to user by name:
-POST -> url
-SENT:
-{"id": <id>, "to": <name>, "msg": <msg>}
+sent message:
+	POST url/<id>
+	SENT:
+		{"id": <id>, "to": <name>, "msg": <msg>}
+	RESPONSES:
+		{"error_message": <error_message>}
 
-login:
-POST -> url
-SENT:
-{"name": <name>}
-RESPONSE:
-{"id": <id>}
+login user:
+	POST <url>/user
+		SENT:
+			{"name": <name>}
+		RESPONSE:
+			{"id": <id>, "error_message": <error_message>}
 
-
-login        -> POST   <url>/user
-sent message -> POST   <url>/user/<id>
-get messages -> GET    <url>/user/<id>
 --------------------------
 
 DROP TABLE IF EXISTS users; DROP TABLE IF EXISTS messages; DROP TABLE IF EXISTS message_recipients;
@@ -73,10 +69,10 @@ insert into message_recipients (message_id, recipient_id) values (1, 2);
 insert into message_recipients (message_id, recipient_id) values (2, 1);
 
 
-
 SELECT messages.message_id, messages.message, users.user_name FROM messages
 LEFT JOIN message_recipients ON message_recipients.message_id = messages.message_id
 LEFT JOIN users ON users.user_id = messages.sender_id
-WHERE message_recipients.recipient_id=2 AND messages.read_status=0;
+WHERE message_recipients.recipient_id=2 AND messages.read_status=0
+ORDER BY date(messages.time_stamp);
 
-UPDATE messages set read_status=0;# WHERE message_id=2;
+UPDATE messages set read_status=0;// WHERE message_id=2;

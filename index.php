@@ -123,10 +123,13 @@ switch ($method) {
                 if ("user" == $endpoint && isset($userId)){
                     try{
                         $result = $foo->getMessagesByUserId($userId);
+                        $result['error_message'] = '';
                         echo json_encode($result);
                     } catch (UserIdException $e){
+                        header($_SERVER['SERVER_PROTOCOL'] . ' 400 Bad Request', true, 400);
                         echo json_encode(array('error_message' => $e->getMessage()));
                     } catch (GetMessageException $e){
+                        header($_SERVER['SERVER_PROTOCOL'] . ' 500 Internal Server Error', true, 500);
                         echo json_encode(array('error_message' => $e->getMessage()));
                     }
                 }
@@ -142,8 +145,10 @@ switch ($method) {
                     $foo->pushMessage($userId, $_POST["userName"], $_POST["msg"]);
                     echo json_encode(array('error_message'=> ''));
                 } catch(PushMessageException $e){
+                    header($_SERVER['SERVER_PROTOCOL'] . ' 500 Internal Server Error', true, 500);
                     echo json_encode(array('error_message' => $e->getMessage()));
                 } catch(UserNameException $e){
+                    header($_SERVER['SERVER_PROTOCOL'] . ' 400 Bad Request', true, 400);
                     echo json_encode(array('error_message' => $e->getMessage()));
                 }
             } else {
@@ -152,6 +157,7 @@ switch ($method) {
                     $userId = $foo->onLogin($_POST["userName"]);
                     echo json_encode(array('user_id' => $userId, 'error_message' => ''));
                 } catch(Exception $e){
+                    header($_SERVER['SERVER_PROTOCOL'] . ' 500 Internal Server Error', true, 500);
                     echo json_encode(array('error_message' => 'Some problem occured. Try later.'));    
                 }
             }
