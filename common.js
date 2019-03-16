@@ -37,18 +37,15 @@ SingleClient.prototype.UserLogin = function(userName){
 }
 
 SingleClient.prototype.pushMessageByUserName = function(userName, msg){
-    
-    // this.xhr.open("POST", this.url + "/user/" + userId, true);
-    this.xhr.open("POST", this.url + "/user/1", true);
-    this.xhr.setRequestHeader("Content-Type", "application/json; charset=utf-8");
-    data = JSON.stringify({"userName": userName, "msg": msg});
-    alert(this.url + "/user/1");
-    this.xhr.send(data);
-    this.xhr.onreadystatechange = function () {
-        if (this.xhr.readyState === 4 && this.xhr.status === 200) {
-            var jsonObj = JSON.parse(this.xhr.responseText);
-        }
-    }.bind(this);
+    var data = {};
+    data.userName = userName;
+    data.msg = msg;
+    $.ajax({
+        type: 'POST',
+        url: this.url + "/user/1",
+        data: data,
+        dataType: 'json'
+    });
 }
 
 // singleClient = new SingleClient();

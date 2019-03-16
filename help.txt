@@ -13,6 +13,10 @@ or ID in the HTTP messages and the database. You have the freedom to use any fra
 libraries; keep in mind that we love custom-build.
 
 ---------------------------
+
+sudo apt install php-sqlite3
+
+---------------------------
 get messages:
 	GET url/<id>
 	RESPONSES:

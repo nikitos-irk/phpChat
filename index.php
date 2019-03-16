@@ -10,7 +10,7 @@ class DBWrapper{
 	private $myPDO;
 
 	function __construct() {
-       $this->myPDO = new PDO('sqlite:/Users/kovrin/Documents/bunq/bunq.db');
+       $this->myPDO = new PDO('sqlite:bunq.db');
    	}
 
     function checkUser($userId){
@@ -143,8 +143,8 @@ switch ($method) {
                 $userId   = $endpoint[1];
                 $endpoint = $endpoint[0];
                 try{
+                    error_log(gettype ($_POST));
                     $foo->pushMessage($userId, $_POST["userName"], $_POST["msg"]);
-                    error_log(json_encode($_POST));
                     echo json_encode(array('error_message'=> ''));
                 } catch(PushMessageException $e){
                     header($_SERVER['SERVER_PROTOCOL'] . ' 500 Internal Server Error', true, 500);
