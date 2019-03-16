@@ -1,5 +1,10 @@
 #!/bin/bash
 dbname=t.db
+
+sqlite3 $dbname " 
+DROP TABLE IF EXISTS users; DROP TABLE IF EXISTS messages; DROP TABLE IF EXISTS message_recipients;
+"
+
 sqlite3 $dbname " 
 CREATE TABLE IF NOT EXISTS users (
     user_id integer PRIMARY KEY,
