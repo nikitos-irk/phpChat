@@ -27,7 +27,8 @@ class DBWrapper{
                 "SELECT messages.message_id, messages.message, users.user_name FROM messages
                  LEFT JOIN message_recipients ON message_recipients.message_id = messages.message_id
                  LEFT JOIN users ON users.user_id = messages.sender_id
-                 WHERE message_recipients.recipient_id='{$userId}' AND messages.read_status=0"
+                 WHERE message_recipients.recipient_id='{$userId}' AND messages.read_status=0
+                 ORDER BY date(messages.time_stamp)"
         	);
         } catch (Exception $e){
             throw new GetMessageException("Can't get messages from DB", 1);
@@ -148,7 +149,7 @@ switch ($method) {
             } else {
                 $endpoint = $endpoint[0];
                 try{
-                    $userId = $foo->onLogin($_POST["name"]);
+                    $userId = $foo->onLogin($_POST["userName"]);
                     echo json_encode(array('user_id' => $userId, 'error_message' => ''));
                 } catch(Exception $e){
                     echo json_encode(array('error_message' => 'Some problem occured. Try later.'));    
@@ -159,16 +160,4 @@ switch ($method) {
     default:
         break;
 }
-
-// function some(){
-// 	$foo = new DBWrapper;
-//     try{
-//        $result = $foo->getMessagesByUserId(2);
-//        echo json_encode($result);
-//     } catch (UserIdException $e){
-//         echo json_encode(array('error_message' => $e->getMessage()));
-//     }
-// }
-// some();
-
 ?>
