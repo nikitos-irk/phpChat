@@ -6,9 +6,11 @@
    </head>
    <body>
        <div>
-            <input type="text" name="message" id="messageid"><br>
-            <input id="sendMessage" type="button" value="Send a message" onclick="getOnline();" />
+          <textarea rows="25" cols="50" readonly id="allMessages"></textarea><br>
+          <input type="text" name="messages" id="msg"><br>
+          <input id="sendMessage" type="button" value="Send a message"><br>
        </div>
+       <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
         <script src="common.js"></script>
    </body>
 </html>

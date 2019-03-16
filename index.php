@@ -44,9 +44,9 @@ class DBWrapper{
     	}
 
         // to delete extra data from request response
-        $resultMsgs = array();
+        $resultMsgs = array("messages" => array());
         foreach ($data as $msgRecord) {
-            array_push($resultMsgs,
+            array_push($resultMsgs["messages"],
                 array(
                     "message_id" => $msgRecord["message_id"],
                     "message" => $msgRecord["message"],
@@ -54,6 +54,7 @@ class DBWrapper{
                 )
             );
         }
+        $resultMsgs["message_number"] = count($resultMsgs["messages"]);
     	return $resultMsgs;
     }
 
@@ -143,6 +144,7 @@ switch ($method) {
                 $endpoint = $endpoint[0];
                 try{
                     $foo->pushMessage($userId, $_POST["userName"], $_POST["msg"]);
+                    error_log(json_encode($_POST));
                     echo json_encode(array('error_message'=> ''));
                 } catch(PushMessageException $e){
                     header($_SERVER['SERVER_PROTOCOL'] . ' 500 Internal Server Error', true, 500);
