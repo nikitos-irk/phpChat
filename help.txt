@@ -35,6 +35,10 @@ SENT:
 RESPONSE:
 {"id": <id>}
 
+
+login        -> POST   <url>/user
+sent message -> POST   <url>/user/<id>
+get messages -> GET    <url>/user/<id>
 --------------------------
 
 DROP TABLE IF EXISTS users; DROP TABLE IF EXISTS messages; DROP TABLE IF EXISTS message_recipients;
@@ -75,4 +79,4 @@ LEFT JOIN message_recipients ON message_recipients.message_id = messages.message
 LEFT JOIN users ON users.user_id = messages.sender_id
 WHERE message_recipients.recipient_id=2 AND messages.read_status=0;
 
-UPDATE messages set read_status=0 WHERE message_id=2;
+UPDATE messages set read_status=0;# WHERE message_id=2;

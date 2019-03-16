@@ -20,5 +20,5 @@ SingleClient.prototype.getMessages = function(userId){
 
 function getOnline() {
     var singleClient = new SingleClient();
-    singleClient.getMessages(1);
+    singleClient.getMessages(2);
 }

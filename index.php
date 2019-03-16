@@ -3,6 +3,8 @@
 
 class UserNameException extends Exception { }
 class PushMessageException extends Exception { }
+class GetMessageException extends Exception { }
+class UserIdException extends Exception { }
 
 class DBWrapper{
 	private $myPDO;
@@ -11,27 +13,33 @@ class DBWrapper{
        $this->myPDO = new PDO('sqlite:/Users/kovrin/Documents/bunq/bunq.db');
    	}
 
-	function selectAllMessages() { 
-        $result = $this->myPDO->query("SELECT * FROM messages");
-        $s = "";
-        foreach($result as $row)
-	    {
-	        $s = $s . $row["message"] ."\n";
-	    }
-	    return $s;
+    function checkUser($userId){
+        if ($this->myPDO->query("select count(1) from users where user_id='{$userId}'")->fetch()["count(1)"] == "0"){
+            throw new UserIdException("No such user!", 1);
+        }
     }
 
     function getMessagesByUserId($userId){
-    	$result = $this->myPDO->query(
-            "SELECT messages.message_id, messages.message, users.user_name FROM messages
-             LEFT JOIN message_recipients ON message_recipients.message_id = messages.message_id
-             LEFT JOIN users ON users.user_id = messages.sender_id
-             WHERE message_recipients.recipient_id='{$userId}' AND messages.read_status=0"
-    	);
+
+        $this->checkUser($userId);
+        try{
+        	$result = $this->myPDO->query(
+                "SELECT messages.message_id, messages.message, users.user_name FROM messages
+                 LEFT JOIN message_recipients ON message_recipients.message_id = messages.message_id
+                 LEFT JOIN users ON users.user_id = messages.sender_id
+                 WHERE message_recipients.recipient_id='{$userId}' AND messages.read_status=0"
+        	);
+        } catch (Exception $e){
+            throw new GetMessageException("Can't get messages from DB", 1);
+        }
     	
         $data = $result->fetchAll();
     	foreach($data as $value){
-    		$this->myPDO->query("UPDATE messages set read_status = 1 WHERE message_id = '{$value["message_id"]}'"); // to not get these messages next time
+            try{
+    		  $this->myPDO->query("UPDATE messages set read_status = 1 WHERE message_id = '{$value["message_id"]}'"); // to avoid getting these messages next time
+            } catch(Exception $e) {
+                // LOG SOME MESSAGE WAS NOT UPDATED AS READ
+            }
     	}
 
         // to delete extra data from request response
@@ -49,6 +57,8 @@ class DBWrapper{
     }
 
     function pushMessage($userId, $userName, $msg){
+
+        $this->checkUser($userId);
 
     	try{
 			$recipientId = $this->myPDO->query(
@@ -93,37 +103,55 @@ class DBWrapper{
 
 $foo = new DBWrapper;
 
-if (preg_match('/\.(?:png|jpg|jpeg|gif)$/', $_SERVER["REQUEST_URI"])) {
-    return false;    // сервер возвращает файлы напрямую.
-} else {
+$method = $_SERVER['REQUEST_METHOD'];
+if (!isset($_SERVER['PATH_INFO'])){
+    die;
+}
+switch ($method) {
+    case 'GET':
+            $endpoint = explode('/', trim($_SERVER['PATH_INFO'],'/'));
+            if (isset($endpoint)){
+                
+                $userId   = $endpoint[1];
+                $endpoint = $endpoint[0];
 
-    if ('POST' == $_SERVER['REQUEST_METHOD']){
-        echo json_encode(array("a" => 11));
-    }
-    if ('GET' == $_SERVER['REQUEST_METHOD']){
-        // header($_SERVER['SERVER_PROTOCOL'] . ' 407 Internal Server Error', true, 200);
-        // echo json_encode(array("a" => 10));
-        // echo $_SERVER['PATH_INFO'];
-        // $params = explode('/', $_SERVER['PATH_INFO']);
-        // foreach($params as $key => $value) {
-        // 	echo $key . " = " . $value . "\n";
-        // }
-		echo json_encode($foo->getMessagesByUserId(1));
-    }
+                if ("user" == $endpoint && isset($userId)){
+                    try{
+                        $result = $foo->getMessagesByUserId($userId);
+                        echo json_encode($result);
+                    } catch (UserIdException $e){
+                        echo json_encode(array('error_message' => $e->getMessage()));
+                    } catch (GetMessageException $e){
+                        echo json_encode(array('error_message' => $e->getMessage()));
+                    }
+                }
+            }
+        break;
+    case 'POST':
+        $endpoint = explode('/', trim($_SERVER['PATH_INFO'],'/'));
+        if (isset($endpoint[1])){
+            $userId   = $endpoint[1];
+            $endpoint = $endpoint[0];
+            $foo->pushMessage($userId, $_POST["userName"], $_POST["msg"]);
+            echo json_encode(array('error_message'=> ''));
+        } else {
+            $endpoint = $endpoint[0];
+            $userId = $foo->onLogin($_POST["name"]);
+            echo json_encode(array('user_id' => $userId, 'error_message' => ''));
+        }
+        break;
+    default:
+        break;
 }
 
 // function some(){
 // 	$foo = new DBWrapper;
-// 	// try { 
-// 	// 	$foo->pushMessage(1, "rk", "hello again(new)!!!");
-// 	// } catch (UserNameException $e){
-// 	// 	$data = array('error' => , );
-// 	// 	echo json_encode(
-
-// 	// 	)
-// 	// }
-//     echo json_encode($foo->getMessagesByUserId(1)); // to get string
-// 	//echo json_encode( $foo->onLogin("rnk") );
+//     try{
+//        $result = $foo->getMessagesByUserId(2);
+//        echo json_encode($result);
+//     } catch (UserIdException $e){
+//         echo json_encode(array('error_message' => $e->getMessage()));
+//     }
 // }
 // some();
 
