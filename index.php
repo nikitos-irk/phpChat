@@ -82,9 +82,13 @@ class DBWrapper{
     }
 
     function onLogin($userName){
-    	$result = $this->myPDO->query(
-    		"SELECT user_id from users WHERE user_name='{$userName}'"
-    	)->fetch();
+        try{
+        	$result = $this->myPDO->query(
+        		"SELECT user_id from users WHERE user_name='{$userName}'"
+        	)->fetch();
+        } catch(Exception $e){
+            throw new Exception("Can't make sql request.", 1);
+        }
     	
     	$resultId = -1;
 
@@ -129,15 +133,27 @@ switch ($method) {
         break;
     case 'POST':
         $endpoint = explode('/', trim($_SERVER['PATH_INFO'],'/'));
-        if (isset($endpoint[1])){
-            $userId   = $endpoint[1];
-            $endpoint = $endpoint[0];
-            $foo->pushMessage($userId, $_POST["userName"], $_POST["msg"]);
-            echo json_encode(array('error_message'=> ''));
-        } else {
-            $endpoint = $endpoint[0];
-            $userId = $foo->onLogin($_POST["name"]);
-            echo json_encode(array('user_id' => $userId, 'error_message' => ''));
+        if (isset($endpoint)){
+            if (isset($endpoint[1])){
+                $userId   = $endpoint[1];
+                $endpoint = $endpoint[0];
+                try{
+                    $foo->pushMessage($userId, $_POST["userName"], $_POST["msg"]);
+                    echo json_encode(array('error_message'=> ''));
+                } catch(PushMessageException $e){
+                    echo json_encode(array('error_message' => $e->getMessage()));
+                } catch(UserNameException $e){
+                    echo json_encode(array('error_message' => $e->getMessage()));
+                }
+            } else {
+                $endpoint = $endpoint[0];
+                try{
+                    $userId = $foo->onLogin($_POST["name"]);
+                    echo json_encode(array('user_id' => $userId, 'error_message' => ''));
+                } catch(Exception $e){
+                    echo json_encode(array('error_message' => 'Some problem occured. Try later.'));    
+                }
+            }
         }
         break;
     default:
