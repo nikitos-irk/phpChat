@@ -1,5 +1,5 @@
 #!/bin/bash
-dbname=t.db
+dbname=bunq.db
 
 sqlite3 $dbname " 
 DROP TABLE IF EXISTS users; DROP TABLE IF EXISTS messages; DROP TABLE IF EXISTS message_recipients;

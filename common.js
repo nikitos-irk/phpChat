@@ -22,13 +22,21 @@ SingleClient.prototype.getMessagesByUserId = function(userId, callback){
 SingleClient.prototype.UserLogin = function(userName){
     var data = {};
     data.userName = userName;
+    var that = this;
     $.ajax({
         type: 'POST',
-        url: this.url + "/user",
+        // url: this.url + "/user",
+        url: that.url + "/user",
         data: data,
         dataType: 'json',
         success: function(data) {
-            this.userId = data["user_id"];
+            alert("that.userId = " + this.userId);
+            alert("l = " + data["user_id"]);
+            // this.userId = data["user_id"];
+            // window.singleClient.userId = data["user_id"];
+            that.userId = data["user_id"];
+            alert("that.userId = " + that.userId)
+            alert("window.singleClient.userId new = " + window.singleClient.userId)
        }
     });
 }
@@ -37,22 +45,27 @@ SingleClient.prototype.pushMessageByUserName = function(userName, msg){
     var data = {};
     data.userName = userName;
     data.msg = msg;
+    var that = this;
+    alert ("url = " + that.url + "/user/" + window.singleClient.userId)
+    alert ("url(that) = " + that.url + "/user/" + that.userId)
     $.ajax({
         type: 'POST',
-        url: this.url + "/user/" + this.userId,
+        url: that.url + "/user/" + window.singleClient.userId,
         data: data,
         dataType: 'json'
     });
 }
 
 singleClient = new SingleClient();
+// singleClient.userId = 2;
 
 $('#makeLogin').click(function() {
     singleClient.UserLogin($("#uName").val());
+    // alert(singleClient.userId);
     window.location.href = 'gui/chat.html';
     // singleClient = new SingleClient();
-    singleClient.userId = 1;
-    // alert(singleClient.userId);
+    // singleClient.userId = 1;
+    alert("singleClient.userId = " + window.singleClient.userId);
 });
 
 $( "#sendMessage" ).click(function(){
