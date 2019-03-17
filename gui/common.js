@@ -1,35 +1,29 @@
 function SingleClient(userId=0) {
-    // constructor(userId = 0) {
         if (userId != 0){
             this.userId = userId;
         }
         this.xhr = new XMLHttpRequest();
         this.url = "http://localhost:8000";
-    // }
 }
 
-SingleClient.prototype.getMessagesByUserId = function(userId, callback){
-    
-    this.xhr.open("GET", this.url + "/user/" + userId, true);
-    this.xhr.setRequestHeader("Content-Type", "application/json");
-    this.xhr.send(null);
-    
-    this.xhr.onreadystatechange = function () {
-        if (this.xhr.readyState === 4 && this.xhr.status === 200) {
-            if (typeof callback === "function") {
-                callback.apply(this, [this.xhr.responseText]);
-            }
+SingleClient.prototype.getMessagesByUserId = function(userId){
+    $.ajax(this.url + "/user/" + userId).done(function(data) {
+        var resp  = JSON.parse(data);
+        for (var key in resp["messages"]){
+            msg = resp["messages"][key];
+            $("#allMessages").append(
+                msg["user_name"] + ": " + msg["message"] + "\n"
+            );
         }
-    }.bind(this);
+    });
 }
 
 SingleClient.prototype.UserLogin = function(userName){
     var data = {};
     data.userName = userName;
-    var that = this;
     $.ajax({
         type: 'POST',
-        url: that.url + "/user",
+        url: this.url + "/user",
         data: data,
         dataType: 'json',
         success: function(data) {
@@ -44,7 +38,6 @@ SingleClient.prototype.pushMessageByUserName = function(userName, msg){
     data.msg = msg;
     $.ajax({
         type: 'POST',
-        // url: that.url + "/user/" + window.singleClient.userId,
         url: this.url + "/user/" + this.userId,
         data: data,
         dataType: 'json'
@@ -75,19 +68,8 @@ $( "#sendMessage" ).click(function(){
 
 function process(){
     $( "#allMessages" ).ready(function() {
-        messages = singleClient.getMessagesByUserId(singleClient.userId,
-            function (someVal) {
-                var resp  = JSON.parse(someVal);
-                for (var key in resp["messages"]){
-                    msg = resp["messages"][key];
-                    $("#allMessages").append(
-                        msg["user_name"] + ": " + msg["message"] + "\n"
-                    );
-                }
-            }
-        );
+        messages = singleClient.getMessagesByUserId(singleClient.userId);
     });
-    
     setTimeout(function(){ process(); },1000);
 }
 process();
