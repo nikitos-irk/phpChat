@@ -1,7 +1,7 @@
 To run the project you have to have php-sqlite3 and sqlite3 on your machine.
 
 Run in your terminal:
-    ./run.sh
+    chmod +x run.sh && ./run.sh
 It creates bd, tables and few users with created messaeges.
 
 As web server it is possible to user built-in php server and run it like this:
