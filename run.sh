@@ -1,4 +1,5 @@
-#!/bin/bash
+#!/usr/bin/env bash
+
 dbname=bunq.db
 
 sqlite3 $dbname " 
