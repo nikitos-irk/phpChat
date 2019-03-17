@@ -1,7 +1,11 @@
-function SingleClient() {
-    this.xhr = new XMLHttpRequest();
-    this.url = "http://localhost:8000";
-    this.userId;
+function SingleClient(userId=0) {
+    // constructor(userId = 0) {
+        if (userId != 0){
+            this.userId = userId;
+        }
+        this.xhr = new XMLHttpRequest();
+        this.url = "http://localhost:8000";
+    // }
 }
 
 SingleClient.prototype.getMessagesByUserId = function(userId, callback){
@@ -25,18 +29,11 @@ SingleClient.prototype.UserLogin = function(userName){
     var that = this;
     $.ajax({
         type: 'POST',
-        // url: this.url + "/user",
         url: that.url + "/user",
         data: data,
         dataType: 'json',
         success: function(data) {
-            alert("that.userId = " + this.userId);
-            alert("l = " + data["user_id"]);
-            // this.userId = data["user_id"];
-            // window.singleClient.userId = data["user_id"];
-            that.userId = data["user_id"];
-            alert("that.userId = " + that.userId)
-            alert("window.singleClient.userId new = " + window.singleClient.userId)
+            window.location.href = 'gui/chat.html?userId=' + data["user_id"];
        }
     });
 }
@@ -45,32 +42,25 @@ SingleClient.prototype.pushMessageByUserName = function(userName, msg){
     var data = {};
     data.userName = userName;
     data.msg = msg;
-    var that = this;
-    alert ("url = " + that.url + "/user/" + window.singleClient.userId)
-    alert ("url(that) = " + that.url + "/user/" + that.userId)
     $.ajax({
         type: 'POST',
-        url: that.url + "/user/" + window.singleClient.userId,
+        // url: that.url + "/user/" + window.singleClient.userId,
+        url: this.url + "/user/" + this.userId,
         data: data,
         dataType: 'json'
     });
 }
 
-singleClient = new SingleClient();
-// singleClient.userId = 2;
+
+var url = new URL(window.location.href);
+singleClient = new SingleClient(url.searchParams.get("userId"));
 
 $('#makeLogin').click(function() {
+    singleClient = new SingleClient();
     singleClient.UserLogin($("#uName").val());
-    // alert(singleClient.userId);
-    window.location.href = 'gui/chat.html';
-    // singleClient = new SingleClient();
-    // singleClient.userId = 1;
-    alert("singleClient.userId = " + window.singleClient.userId);
 });
 
 $( "#sendMessage" ).click(function(){
-    
-    // singleClient = new SingleClient();
     fullMsg = $("#msg").val();
 
     if (fullMsg.charAt(0) != '@'){
@@ -85,8 +75,7 @@ $( "#sendMessage" ).click(function(){
 
 function process(){
     $( "#allMessages" ).ready(function() {
-        // singleClient = new SingleClient();
-        messages = singleClient.getMessagesByUserId(2,
+        messages = singleClient.getMessagesByUserId(singleClient.userId,
             function (someVal) {
                 var resp  = JSON.parse(someVal);
                 for (var key in resp["messages"]){
